@@ -1,0 +1,94 @@
+#include <iostream>
+#include <utility>
+#include <algorithm>
+using namespace std;
+
+struct Node {
+    string key, meaning;
+    Node *left, *right;
+    Node(string k, string m) : key(k), meaning(m), left(nullptr), right(nullptr) {}
+};
+class Dictionary {
+    Node* root = nullptr;
+
+    Node* insert(Node* n, string k, string m) {
+        if (!n) return new Node(k, m);
+        if (k < n->key) n->left = insert(n->left, k, m);
+        else if (k > n->key) n->right = insert(n->right, k, m);
+        else cout << "Keyword exists. Use update.\n";
+        return n;
+    }
+
+    Node* findMin(Node* n) { return n->left ? findMin(n->left) : n; }
+
+    Node* del(Node* n, string k) {
+        if (!n) return nullptr;
+        if (k < n->key) n->left = del(n->left, k);
+        else if (k > n->key) n->right = del(n->right, k);
+        else {
+            if (!n->left) return exchange(n, n->right), delete n, n;
+            if (!n->right) return exchange(n, n->left), delete n, n;
+            Node* t = findMin(n->right);
+            n->key = t->key; n->meaning = t->meaning;
+            n->right = del(n->right, t->key);
+        }
+        return n;
+    }
+
+    void inOrder(Node* n, bool rev) {
+        if (!n) return;
+        inOrder(rev ? n->right : n->left, rev);
+        cout << n->key << " : " << n->meaning << endl;
+        inOrder(rev ? n->left : n->right, rev);
+    }
+
+    bool search(Node* n, string k, int& cmp) {
+        while (n) {
+            cmp++;
+            if (k == n->key) return cout << "Found: " << n->key << " = " << n->meaning << endl, true;
+            n = k < n->key ? n->left : n->right;
+        }
+        return cout << "Not found.\n", false;
+    }
+
+    bool update(Node* n, string k, string m) {
+        while (n) {
+            if (k == n->key) return n->meaning = m, true;
+            n = k < n->key ? n->left : n->right;
+        }
+        return false;
+    }
+
+    int height(Node* n) {
+        return n ? 1 + max(height(n->left), height(n->right)) : 0;
+    }
+
+public:
+    void add(string k, string m) { root = insert(root, k, m); }
+    void remove(string k) { root = del(root, k); }
+    void update(string k, string m) { cout << (update(root, k, m) ? "Updated.\n" : "Not found.\n"); }
+    void find(string k) {
+        int cmp = 0;
+        search(root, k, cmp);
+        cout << "Comparisons: " << cmp << endl;
+    }
+    void display(bool asc) { inOrder(root, !asc); }
+    void maxComp() { cout << "Max comparisons (height): " << height(root) << endl; }
+};
+int main() {
+    Dictionary d;
+    int c; string k, m;
+    do {
+        cout << "\n1.Add 2.Delete 3.Update 4.Display Asc 5.Display Desc 6.Find 7.MaxComp 8.Exit\nChoice: ";
+        cin >> c; cin.ignore();
+        switch (c) {
+            case 1: cout << "Keyword: "; getline(cin, k); cout << "Meaning: "; getline(cin, m); d.add(k, m); break;
+            case 2: cout << "Delete: "; getline(cin, k); d.remove(k); break;
+            case 3: cout << "Update key: "; getline(cin, k); cout << "New meaning: "; getline(cin, m); d.update(k, m); break;
+            case 4: d.display(true); break;
+            case 5: d.display(false); break;
+            case 6: cout << "Find: "; getline(cin, k); d.find(k); break;
+            case 7: d.maxComp(); break;
+        }
+    } while (c != 8);
+}
