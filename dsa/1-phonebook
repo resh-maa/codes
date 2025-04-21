@@ -1,0 +1,89 @@
+#include <iostream>
+using namespace std;
+
+struct Node { string name, telephone; int key = 0; int comparisons = 0; };
+
+class HashTable {
+    Node data[100];
+    int hash(string s) { 
+        int sum = 0; for(char c : s) sum += c; return sum % 100; 
+    }
+    
+    int hash2(string s) {
+        int sum = 0; 
+        for(char c : s) sum += c * 31; 
+        return 1 + (sum % 97); 
+    }
+public:
+    void create_linear(string n, string t) {
+        int k = hash(n), i = k % 100, j = 0;
+        while(data[i].key && j++ < 100) i = (i + 1) % 100;
+        if(j < 100) data[i] = {n, t, k, j};
+    }
+    void create_double(string n, string t) {
+        int k = hash(n), h2 = hash2(n), i = k % 100, j = 0;
+        while(data[i].key && j++ < 100) i = (i + h2) % 100;
+        if(j < 100) data[i] = {n, t, k, j};
+    }
+    int search_linear(string n) {
+        int k = hash(n), i = k % 100, j = 0;
+        while(data[i].key != k && data[i].name != n && j++ < 100) i = (i + 1) % 100;
+        if(j < 100 && data[i].key) {
+            cout << "Found: " << data[i].name << " - " << data[i].telephone << endl;
+            return j;
+        } else {
+            cout << "Not found\n";
+            return j;
+        }
+    }
+    int search_double(string n) {
+        int k = hash(n), h2 = hash2(n), i = k % 100, j = 0;
+        while(data[i].key != k && data[i].name != n && j++ < 100) i = (i + h2) % 100;
+        if(j < 100 && data[i].key) {
+            cout << "Found: " << data[i].name << " - " << data[i].telephone << endl;
+            return j;
+        } else {
+            cout << "Not found\n";
+            return j;
+        }
+    }
+    void display() {
+        int linear_comparisons = 0, double_comparisons = 0;
+        for(auto& d : data) {
+            if(d.key) {
+                cout << d.name << "\t" << d.telephone << "\tComparisons: " << d.comparisons << endl;
+                if(d.comparisons > 0) {
+                    linear_comparisons += d.comparisons;
+                    double_comparisons += d.comparisons;
+                }
+            }
+        }
+        cout << "\nTotal comparisons (Linear Probing): " << linear_comparisons << endl;
+        cout << "Total comparisons (Double Hashing): " << double_comparisons << endl;
+    }
+    void reset() {
+        for(auto& d : data) d = {"", "", 0, 0};
+    }
+};
+
+int main() {
+    HashTable db;
+    while(true) {
+        cout << "\n1. Create (Linear Probing)\n2. Create (Double Hashing)\n3. Display\n4. Search (Linear)\n5. Search (Double)\n6. Reset Table\n7. Exit\nChoice: ";
+        int c; string n, t; cin >> c;
+        if(c == 7) break;
+        cout << "Name: "; cin >> n;
+        if(c == 1) cout << "Tel: ", cin >> t, db.create_linear(n, t);
+        else if(c == 2) cout << "Tel: ", cin >> t, db.create_double(n, t);
+        else if(c == 3) db.display();
+        else if(c == 4) {
+            int comp = db.search_linear(n);
+            cout << "Comparisons made: " << comp << endl;
+        }
+        else if(c == 5) {
+            int comp = db.search_double(n);
+            cout << "Comparisons made: " << comp << endl;
+        }
+        else if(c == 6) db.reset();
+    }
+}.
