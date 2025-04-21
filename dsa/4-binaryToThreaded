@@ -1,0 +1,61 @@
+#include <iostream>
+using namespace std;
+struct Node {
+    int data;
+    Node *left, *right;
+    bool isThreaded; 
+
+    Node(int val) {
+        data = val;
+        left = right = nullptr;
+        isThreaded = false;
+    }
+};
+Node* createThreaded(Node* root, Node*& prev) {
+    if (root == nullptr) return nullptr;
+    createThreaded(root->left, prev);
+    if (prev != nullptr && prev->right == nullptr) {
+        prev->right = root;
+        prev->isThreaded = true;
+    }
+    prev = root;
+    if (!root->isThreaded)
+        createThreaded(root->right, prev);
+    return root;
+}
+Node* convertToThreaded(Node* root) {
+    Node* prev = nullptr;
+    return createThreaded(root, prev);
+}
+
+void inOrderTraversal(Node* root) {
+    Node* current = root;
+    while (current != nullptr) {
+        while (current->left != nullptr)
+            current = current->left;
+        while (current != nullptr) {
+            cout << current->data << " ";
+            if (current->isThreaded)
+                current = current->right;
+            else
+                break;
+        }
+        if (current != nullptr)
+            current = current->right;
+    }
+}
+int main() {
+  
+    Node* root = new Node(6);
+    root->left = new Node(3);
+    root->right = new Node(8);
+    root->left->left = new Node(1);
+    root->left->right = new Node(5);
+    root->right->right = new Node(11);
+
+    convertToThreaded(root);
+
+    cout << "In-order traversal of threaded binary tree:\n";
+    inOrderTraversal(root);
+    return 0;
+}
