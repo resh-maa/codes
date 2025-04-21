@@ -1,0 +1,110 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Set {
+    vector<int> elements;
+
+public:
+    void add(int value) {
+        if (!contains(value))
+            elements.push_back(value);
+    }
+
+    void remove(int value) {
+        for (size_t i = 0; i < elements.size(); ) {
+            if (elements[i] == value) {
+                for (size_t j = i; j < elements.size() - 1; ++j) {
+                    elements[j] = elements[j + 1];
+                }
+                elements.pop_back();
+            } else {
+                ++i; 
+            }
+        }
+    }
+
+    bool contains(int value) {
+        return find(elements.begin(), elements.end(), value) != elements.end();
+    }
+
+    int size() {
+        return elements.size();
+    }
+
+    void print() {
+        cout << "{ ";
+        for (int val : elements)
+            cout << val << " ";
+        cout << "}" << endl;
+    }
+
+    Set intersection(Set& other) {
+        Set result;
+        for (int val : elements)
+            if (other.contains(val))
+                result.add(val);
+        return result;
+    }
+
+    Set unionSet(Set& other) {
+        Set result = *this;
+        for (int val : other.elements)
+            result.add(val);
+        return result;
+    }
+
+    Set difference(Set& other) {
+        Set result;
+        for (int val : elements)
+            if (!other.contains(val))
+                result.add(val);
+        return result;
+    }
+
+    bool isSubsetOf(Set& other) {
+        for (int val : elements)
+            if (!other.contains(val))
+                return false;
+        return true;
+    }
+};
+
+int main() {
+    Set set1, set2;
+
+    set1.add(1); set1.add(2); set1.add(3);
+    set2.add(3); set2.add(4); set2.add(5);
+
+    cout << "Set 1: "; set1.print();
+    cout << "Set 2: "; set2.print();
+
+    Set inter = set1.intersection(set2);
+    cout << "\nIntersection: ";
+    inter.print();
+
+    Set uni = set1.unionSet(set2);
+    cout << "Union: ";
+    uni.print();
+
+    Set diff = set1.difference(set2);
+    cout << "Difference (Set1 - Set2): ";
+    diff.print();
+
+    cout << "\nIs Set1 a subset of Set2? " << (set1.isSubsetOf(set2) ? "Yes" : "No") << endl;
+
+    cout << "\nAdding 6 to Set1...\n";
+    set1.add(6);
+    set1.print();
+
+    cout << "Removing 2 from Set1...\n";
+    set1.remove(2);
+    set1.print();
+
+    cout << "Set1 contains 3? " << (set1.contains(3) ? "Yes" : "No") << endl;
+    cout << "Size of Set1: " << set1.size() << endl;
+
+    return 0;
+}
