@@ -1,0 +1,89 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+class FlightGraph {
+private:
+    vector<string> cities;
+    vector<vector<pair<int, int>>> adjList;
+
+public:
+    FlightGraph(int n) {
+        cities.resize(n);
+        adjList.resize(n);
+    }
+
+    void setCityName(int index, const string& name) {
+        if (index >= 0 && index < cities.size())
+            cities[index] = name;
+    }
+
+    int getCityIndex(const string& name) {
+        for (int i = 0; i < cities.size(); ++i) {
+            if (cities[i] == name)
+                return i;
+        }
+        return -1;
+    }
+
+    void addFlight(const string& from, const string& to, int cost) {
+        int fromIndex = getCityIndex(from);
+        int toIndex = getCityIndex(to);
+
+        if (fromIndex != -1 && toIndex != -1) {
+            adjList[fromIndex].push_back({toIndex, cost});
+        } else {
+            cout << "City not found: " << from << " or " << to << endl;
+        }
+    }
+
+    void displayGraph() const {
+        cout << "\nFlight Graph:\n";
+        for (int i = 0; i < adjList.size(); ++i) {
+            cout << cities[i] << " -> ";
+            for (const auto& flight : adjList[i]) {
+                cout << "[" << cities[flight.first] << ", Cost: " << flight.second << "] ";
+            }
+            cout << endl;
+        }
+    }
+};
+
+int main() {
+    int n;
+    cout << "Enter number of cities: ";
+    cin >> n;
+
+    FlightGraph graph(n);
+    cin.ignore(); // Ignore leftover newline
+
+    cout << "Enter names of the cities:\n";
+    for (int i = 0; i < n; ++i) {
+        string cityName;
+        getline(cin, cityName);
+        graph.setCityName(i, cityName);
+    }
+
+    int m;
+    cout << "Enter number of flights: ";
+    cin >> m;
+    cin.ignore();
+
+    cout << "Enter flight details (source destination cost):\n";
+    for (int i = 0; i < m; ++i) {
+        string from, to;
+        int cost;
+        cout << "Flight " << i + 1 << ": ";
+        cin >> ws; // ignore leading whitespaces
+        getline(cin, from, ' ');
+        getline(cin, to, ' ');
+        cin >> cost;
+        graph.addFlight(from, to, cost);
+    }
+
+    graph.displayGraph();
+
+    return 0;
+}
