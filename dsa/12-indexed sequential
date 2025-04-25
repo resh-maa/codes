@@ -1,0 +1,107 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
+
+struct Employee {
+    int empID;
+    string name, designation;
+    double salary;
+};
+
+// Function to write employee to data file and update index file
+void addEmployee() {
+    Employee emp;
+    cout << "Enter Employee ID: "; cin >> emp.empID; cin.ignore();
+    cout << "Enter Name: "; getline(cin, emp.name);
+    cout << "Enter Designation: "; getline(cin, emp.designation);
+    cout << "Enter Salary: "; cin >> emp.salary;
+
+    ofstream dataFile("employeeData.txt", ios::app | ios::binary);
+    dataFile.write(reinterpret_cast<char*>(&emp), sizeof(Employee));
+    long position = dataFile.tellp();
+    dataFile.close();
+
+    ofstream indexFile("employeeIndex.txt", ios::app | ios::binary);
+    indexFile.write(reinterpret_cast<char*>(&emp.empID), sizeof(int));
+    indexFile.write(reinterpret_cast<char*>(&position), sizeof(long));
+    indexFile.close();
+
+    cout << "Employee added successfully!" << endl;
+}
+
+// Function to search and display employee details
+void searchEmployee(int empID) {
+    ifstream indexFile("employeeIndex.txt", ios::binary);
+    int id; long position;
+    bool found = false;
+
+    while (indexFile.read(reinterpret_cast<char*>(&id), sizeof(int))) {
+        indexFile.read(reinterpret_cast<char*>(&position), sizeof(long));
+        if (id == empID) {
+            found = true;
+            break;
+        }
+    }
+    indexFile.close();
+
+    if (found) {
+        ifstream dataFile("employeeData.txt", ios::binary);
+        dataFile.seekg(position);
+        Employee emp;
+        dataFile.read(reinterpret_cast<char*>(&emp), sizeof(Employee));
+        dataFile.close();
+
+        cout << "Employee Found!\nID: " << emp.empID << "\nName: " << emp.name 
+             << "\nDesignation: " << emp.designation << "\nSalary: " << emp.salary << endl;
+    } else {
+        cout << "Employee with ID " << empID << " not found!" << endl;
+    }
+}
+
+// Function to delete an employee record
+void deleteEmployee(int empID) {
+    ifstream indexFile("employeeIndex.txt", ios::binary);
+    ofstream tempIndexFile("tempIndex.txt", ios::binary);
+    int id; long position;
+    bool found = false;
+
+    while (indexFile.read(reinterpret_cast<char*>(&id), sizeof(int))) {
+        indexFile.read(reinterpret_cast<char*>(&position), sizeof(long));
+        if (id != empID) {
+            tempIndexFile.write(reinterpret_cast<char*>(&id), sizeof(int));
+            tempIndexFile.write(reinterpret_cast<char*>(&position), sizeof(long));
+        } else {
+            found = true;
+        }
+    }
+    indexFile.close();
+    tempIndexFile.close();
+
+    if (found) {
+        remove("employeeIndex.txt");
+        rename("tempIndex.txt", "employeeIndex.txt");
+        cout << "Employee with ID " << empID << " deleted!" << endl;
+    } else {
+        cout << "Employee not found!" << endl;
+    }
+}
+
+int main() {
+    int choice, empID;
+    while (true) {
+        cout << "\n1. Add Employee\n2. Display Employee\n3. Delete Employee\n4. Exit\nEnter your choice: ";
+        cin >> choice;
+        if (choice == 4) break;
+
+        switch (choice) {
+            case 1: addEmployee(); break;
+            case 2:
+                cout << "Enter Employee ID: "; cin >> empID; searchEmployee(empID); break;
+            case 3:
+                cout << "Enter Employee ID: "; cin >> empID; deleteEmployee(empID); break;
+            default: cout << "Invalid choice! Try again." << endl;
+        }
+    }
+    return 0;
+}
